@@ -21,7 +21,7 @@ Tek kullanıcı / küçük ekip için tasarlanmıştır; çok kiracılı (SaaS) 
 |---|---|---|
 | Uygulama | Next.js (App Router) + TypeScript | Arayüz + API tek kod tabanında, tek dil |
 | Arayüz | React 19 + Tailwind CSS 4 | Hızlı, modern panel geliştirme |
-| Veritabanı | SQLite (Prisma ORM) | Tek kullanıcı için sıfır kurulum; Prisma sayesinde ileride PostgreSQL'e geçiş kolay |
+| Veritabanı | PostgreSQL (Prisma ORM, ücretsiz Neon barındırması) | Vercel gibi sunucusuz ortamlarda kalıcı depolama; Prisma ile sağlayıcı değişimi kolay |
 | Doğrulama | Zod | API girdilerinin tip güvenliği |
 | Zamanlama | Cron tetikleyicili API rotası (`/api/cron`) | Metrik toplama ve planlı paylaşım yayını |
 | AI (ileride) | Claude API | Yorum yanıt taslakları ve büyüme önerileri — Faz 4'te eklenecek |
@@ -104,7 +104,7 @@ periyodik çağrılır ve sırayla:
 Gizli bilgiler `.env` dosyasında tutulur (depoya girmez):
 
 ```
-DATABASE_URL="file:./dev.db"
+DATABASE_URL="postgresql://..."   # ücretsiz Neon PostgreSQL
 GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
 META_APP_ID=...

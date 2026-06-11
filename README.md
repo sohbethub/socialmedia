@@ -9,11 +9,14 @@ Detaylı mimari ve yol haritası için [DESIGN.md](./DESIGN.md) dosyasına bakı
 
 ```bash
 npm install
-cp .env.example .env        # değerleri doldurun (demo için DATABASE_URL yeterli)
-npm run db:push             # SQLite veritabanını oluşturur
+cp .env.example .env        # DATABASE_URL (ücretsiz Neon PostgreSQL) ve diğer değerleri doldurun
+npm run db:push             # veritabanı tablolarını oluşturur
 npm run db:seed             # demo verisini yükler
 npm run dev                 # http://localhost:3000
 ```
+
+Ücretsiz sunucuya kurulum için [DEPLOY.md](./DEPLOY.md) rehberine bakın
+(Vercel + Neon).
 
 ## Komutlar
 

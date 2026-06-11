@@ -3,11 +3,11 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-// Not: SQLite enum desteklemediği için sabit değerler String olarak tutulur.
+// Not: Taşınabilirlik için sabit değerler enum yerine String olarak tutulur.
 // platform: "YOUTUBE" | "INSTAGRAM"
 // status:   "DRAFT" | "SCHEDULED" | "PUBLISHED" | "FAILED"
 // sentiment:"POSITIVE" | "NEGATIVE" | "NEUTRAL" | "QUESTION"
