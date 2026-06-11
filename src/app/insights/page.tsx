@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { aiConfigured } from "@/lib/ai";
-import { runAiAnalysis } from "./actions";
+import { runAiAnalysis, runFreeAnalysis } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -46,28 +46,32 @@ export default async function InsightsPage() {
             )}
           </p>
         </div>
-        {hasAi ? (
-          <form action={runAiAnalysis}>
+        <div className="flex items-center gap-3">
+          <form action={runFreeAnalysis}>
             <button
               type="submit"
-              className="rounded-lg bg-violet-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-violet-700"
+              className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
             >
-              ✨ AI analizi çalıştır
+              📊 Analizi çalıştır (ücretsiz)
             </button>
           </form>
-        ) : (
-          <span className="rounded-lg bg-zinc-100 px-4 py-2.5 text-sm text-zinc-500">
-            AI analizi için .env dosyasına ANTHROPIC_API_KEY ekleyin
-          </span>
-        )}
+          {hasAi && (
+            <form action={runAiAnalysis}>
+              <button
+                type="submit"
+                className="rounded-lg bg-violet-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-violet-700"
+              >
+                ✨ AI analizi (Claude)
+              </button>
+            </form>
+          )}
+        </div>
       </div>
 
       {insights.length === 0 ? (
         <p className="rounded-xl border border-dashed border-zinc-300 bg-zinc-50 p-8 text-center text-sm text-zinc-500">
-          Henüz analiz yok.{" "}
-          {hasAi
-            ? "Yukarıdaki düğmeyle ilk AI analizini başlatın."
-            : "ANTHROPIC_API_KEY ekledikten sonra ilk analizinizi çalıştırabilirsiniz."}
+          Henüz analiz yok. Yukarıdaki &quot;Analizi çalıştır&quot; düğmesiyle ücretsiz
+          analizini hemen başlatabilirsin.
         </p>
       ) : (
         <>
