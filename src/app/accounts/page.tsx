@@ -1,21 +1,46 @@
 import { db } from "@/lib/db";
 import { platformLabel } from "@/lib/stats";
+import { syncNow } from "./actions";
 
 export const dynamic = "force-dynamic";
 
-export default async function AccountsPage() {
+const errorMessages: Record<string, string> = {
+  invalid_state: "Güvenlik doğrulaması başarısız oldu, lütfen tekrar deneyin.",
+  channel_fetch_failed: "Kanal bilgisi alınamadı, lütfen tekrar deneyin.",
+  no_channel: "Bu Google hesabına bağlı bir YouTube kanalı bulunamadı.",
+  access_denied: "Google izin ekranında erişim reddedildi.",
+};
+
+export default async function AccountsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ connected?: string; error?: string }>;
+}) {
+  const params = await searchParams;
   const accounts = await db.account.findMany({
     include: { _count: { select: { posts: true } } },
     orderBy: { connectedAt: "asc" },
   });
 
+  const googleConfigured =
+    !!process.env.GOOGLE_CLIENT_ID && !!process.env.GOOGLE_CLIENT_SECRET;
+  const hasConnected = accounts.some((a) => a.accessToken);
+
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Hesaplar</h2>
-      <p className="text-sm text-zinc-500">
-        Bağlı sosyal medya hesapları. Gerçek OAuth bağlantısı Faz 2 (YouTube) ve
-        Faz 3&apos;te (Instagram) eklenecek; şu an demo hesaplar görüntüleniyor.
-      </p>
+
+      {params.connected === "youtube" && (
+        <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          YouTube kanalı başarıyla bağlandı. İçerikler bir sonraki senkronda
+          (veya aşağıdaki düğmeyle hemen) çekilecek.
+        </p>
+      )}
+      {params.error && (
+        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          {errorMessages[params.error] ?? `Bağlantı hatası: ${params.error}`}
+        </p>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-2">
         {accounts.map((a) => (
@@ -42,14 +67,50 @@ export default async function AccountsPage() {
         ))}
       </div>
 
-      <div className="rounded-xl border border-dashed border-zinc-300 bg-zinc-50 p-5 text-sm text-zinc-500">
-        <p className="font-medium text-zinc-700">Yeni hesap bağlama</p>
-        <p className="mt-1">
-          Google OAuth (YouTube) ve Meta OAuth (Instagram) akışları entegrasyon
-          fazlarında buraya eklenecek. Gerekli anahtarlar için{" "}
-          <code className="rounded bg-zinc-200 px-1">.env.example</code> dosyasına bakın.
-        </p>
-      </div>
+      <section className="rounded-xl border border-zinc-200 bg-white p-5">
+        <h3 className="mb-3 font-semibold">Yeni hesap bağla</h3>
+        <div className="flex flex-wrap items-center gap-3">
+          {googleConfigured ? (
+            <a
+              href="/api/auth/google"
+              className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+            >
+              ▶ YouTube kanalını bağla
+            </a>
+          ) : (
+            <span className="rounded-lg bg-zinc-100 px-4 py-2 text-sm text-zinc-500">
+              ▶ YouTube — önce .env dosyasına GOOGLE_CLIENT_ID ve
+              GOOGLE_CLIENT_SECRET ekleyin
+            </span>
+          )}
+          <span className="rounded-lg bg-zinc-100 px-4 py-2 text-sm text-zinc-500">
+            📷 Instagram — Faz 3&apos;te eklenecek
+          </span>
+        </div>
+      </section>
+
+      {hasConnected && (
+        <section className="rounded-xl border border-zinc-200 bg-white p-5">
+          <h3 className="mb-3 font-semibold">Senkronizasyon</h3>
+          <p className="mb-3 text-sm text-zinc-500">
+            Metrikler ve yorumlar /api/cron ile periyodik çekilir; beklemeden
+            şimdi başlatabilirsiniz.
+          </p>
+          <form
+            action={async () => {
+              "use server";
+              await syncNow();
+            }}
+          >
+            <button
+              type="submit"
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            >
+              Şimdi senkronize et
+            </button>
+          </form>
+        </section>
+      )}
     </div>
   );
 }

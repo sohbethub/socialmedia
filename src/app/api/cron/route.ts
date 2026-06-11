@@ -1,19 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { syncAllAccounts } from "@/lib/sync";
 
 // Periyodik görevler. Dış bir zamanlayıcı (sunucu cron'u, Vercel Cron vb.)
 // bu rotayı düzenli aralıklarla çağırır:
 //   curl -H "Authorization: Bearer $CRON_SECRET" https://.../api/cron
 //
 // Görevler:
-// 1. Metrik toplama   → Faz 2/3'te PlatformClient.getMetrics ile doldurulacak
-// 2. Yorum senkronu   → Faz 2/3'te PlatformClient.getComments ile doldurulacak
-// 3. Planlı yayın     → zamanı gelen ScheduledPost kayıtlarını işler
+// 1. Metrik + yorum senkronu — bağlı hesaplardan (YouTube; Instagram Faz 3'te)
+// 2. Planlı yayın — zamanı gelen ScheduledPost kayıtlarını işler
 export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET;
   if (secret && req.headers.get("authorization") !== `Bearer ${secret}`) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
+
+  const syncResults = await syncAllAccounts();
 
   const due = await db.scheduledPost.findMany({
     where: { status: "SCHEDULED", scheduledAt: { lte: new Date() } },
@@ -46,6 +48,7 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     ok: true,
+    sync: syncResults,
     processedScheduledPosts: results,
     ranAt: new Date().toISOString(),
   });
