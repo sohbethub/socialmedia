@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Not: SQLite enum desteklemediği için sabit değerler String olarak tutulur.
+// platform: "YOUTUBE" | "INSTAGRAM"
+// status:   "DRAFT" | "SCHEDULED" | "PUBLISHED" | "FAILED"
+// sentiment:"POSITIVE" | "NEGATIVE" | "NEUTRAL" | "QUESTION"
+
+// Bağlı sosyal medya hesabı
+model Account {
+  id           String    @id @default(cuid())
+  platform     String
+  externalId   String // platformdaki hesap/kanal kimliği
+  displayName  String
+  accessToken  String?
+  refreshToken String?
+  tokenExpiry  DateTime?
+  connectedAt  DateTime  @default(now())
+
+  posts          Post[]
+  scheduledPosts ScheduledPost[]
+
+  @@unique([platform, externalId])
+}
+
+// Platformda yayınlanmış içerik (video / medya)
+model Post {
+  id          String   @id @default(cuid())
+  accountId   String
+  externalId  String // platformdaki video/medya kimliği
+  title       String
+  description String?
+  permalink   String?
+  publishedAt DateTime
+  syncedAt    DateTime @default(now())
+
+  account  Account          @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  metrics  MetricSnapshot[]
+  comments Comment[]
+
+  @@unique([accountId, externalId])
+}
+
+// Bir içeriğin belirli bir andaki metrikleri (zaman serisi)
+model MetricSnapshot {
+  id         String   @id @default(cuid())
+  postId     String
+  capturedAt DateTime @default(now())
+  views      Int      @default(0)
+  likes      Int      @default(0)
+  comments   Int      @default(0)
+  shares     Int      @default(0)
+  saves      Int      @default(0)
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId, capturedAt])
+}
+
+// Gelen yorum
+model Comment {
+  id          String    @id @default(cuid())
+  postId      String
+  externalId  String
+  authorName  String
+  text        String
+  publishedAt DateTime
+  sentiment   String?
+  repliedAt   DateTime?
+  replyText   String?
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, externalId])
+}
+
+// Planlanmış paylaşım
+model ScheduledPost {
+  id          String   @id @default(cuid())
+  accountId   String
+  title       String
+  description String?
+  mediaPath   String? // yüklenecek medya dosyasının yolu
+  scheduledAt DateTime
+  status      String   @default("DRAFT")
+  error       String?
+  createdAt   DateTime @default(now())
+  publishedId String? // yayınlandıktan sonra platformdaki kimlik
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([status, scheduledAt])
+}
+
+// Üretilen büyüme önerisi
+model Insight {
+  id          String    @id @default(cuid())
+  kind        String // BEST_TIME / CONTENT_TYPE / TITLE / ENGAGEMENT
+  title       String
+  body        String
+  basedOn     String? // dayandığı verinin kısa özeti (JSON)
+  createdAt   DateTime  @default(now())
+  dismissedAt DateTime?
+}
