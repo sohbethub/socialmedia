@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { getValidAccessToken } from "@/lib/google";
+import { getMetaToken } from "@/lib/meta";
+import { InstagramClient } from "@/lib/platforms/instagram";
 import { YouTubeClient } from "@/lib/platforms/youtube";
 
 const replySchema = z.object({
@@ -31,8 +33,10 @@ export async function replyToComment(formData: FormData) {
   if (account.accessToken && account.platform === "YOUTUBE") {
     const client = new YouTubeClient(await getValidAccessToken(account.id));
     await client.replyToComment(comment.externalId, parsed.data.text);
+  } else if (account.accessToken && account.platform === "INSTAGRAM") {
+    const client = new InstagramClient(getMetaToken(account), account.externalId);
+    await client.replyToComment(comment.externalId, parsed.data.text);
   }
-  // Instagram yanıt gönderimi Faz 3'te eklenecek
 
   await db.comment.update({
     where: { id: comment.id },

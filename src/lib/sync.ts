@@ -3,7 +3,9 @@
 import type { Account } from "@prisma/client";
 import { db } from "./db";
 import { getValidAccessToken } from "./google";
+import { getMetaToken } from "./meta";
 import { classifySentiment } from "./replies";
+import { InstagramClient } from "./platforms/instagram";
 import { YouTubeClient } from "./platforms/youtube";
 import type { PlatformClient } from "./platforms/types";
 
@@ -13,7 +15,7 @@ async function clientFor(account: Account): Promise<PlatformClient | null> {
     case "YOUTUBE":
       return new YouTubeClient(await getValidAccessToken(account.id));
     case "INSTAGRAM":
-      return null; // Faz 3
+      return new InstagramClient(getMetaToken(account), account.externalId);
     default:
       return null;
   }

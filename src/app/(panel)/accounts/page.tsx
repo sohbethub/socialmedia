@@ -8,7 +8,7 @@ const errorMessages: Record<string, string> = {
   invalid_state: "Güvenlik doğrulaması başarısız oldu, lütfen tekrar deneyin.",
   channel_fetch_failed: "Kanal bilgisi alınamadı, lütfen tekrar deneyin.",
   no_channel: "Bu Google hesabına bağlı bir YouTube kanalı bulunamadı.",
-  access_denied: "Google izin ekranında erişim reddedildi.",
+  access_denied: "İzin ekranında erişim reddedildi.",
 };
 
 export default async function AccountsPage({
@@ -24,6 +24,7 @@ export default async function AccountsPage({
 
   const googleConfigured =
     !!process.env.GOOGLE_CLIENT_ID && !!process.env.GOOGLE_CLIENT_SECRET;
+  const metaConfigured = !!process.env.META_APP_ID && !!process.env.META_APP_SECRET;
   const hasConnected = accounts.some((a) => a.accessToken);
 
   return (
@@ -34,6 +35,12 @@ export default async function AccountsPage({
         <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
           YouTube kanalı başarıyla bağlandı. İçerikler bir sonraki senkronda
           (veya aşağıdaki düğmeyle hemen) çekilecek.
+        </p>
+      )}
+      {params.connected === "instagram" && (
+        <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          Instagram hesabı başarıyla bağlandı. Gönderiler ve metrikler bir
+          sonraki senkronda (veya aşağıdaki düğmeyle hemen) çekilecek.
         </p>
       )}
       {params.error && (
@@ -83,9 +90,18 @@ export default async function AccountsPage({
               GOOGLE_CLIENT_SECRET ekleyin
             </span>
           )}
-          <span className="rounded-lg bg-zinc-100 px-4 py-2 text-sm text-zinc-500">
-            📷 Instagram — Faz 3&apos;te eklenecek
-          </span>
+          {metaConfigured ? (
+            <a
+              href="/api/auth/meta"
+              className="rounded-lg bg-pink-600 px-4 py-2 text-sm font-medium text-white hover:bg-pink-700"
+            >
+              📷 Instagram hesabını bağla
+            </a>
+          ) : (
+            <span className="rounded-lg bg-zinc-100 px-4 py-2 text-sm text-zinc-500">
+              📷 Instagram — önce META_APP_ID ve META_APP_SECRET ekleyin
+            </span>
+          )}
         </div>
       </section>
 
