@@ -108,3 +108,34 @@ model Insight {
   createdAt   DateTime  @default(now())
   dismissedAt DateTime?
 }
+
+// İzlenen rakip kanal (isSelf=true ise kendi kanalımız — kıyas satırı)
+model Competitor {
+  id         String   @id @default(cuid())
+  platform   String   @default("YOUTUBE")
+  externalId String // platformdaki kanal kimliği
+  name       String
+  handle     String?
+  isSelf     Boolean  @default(false)
+  addedAt    DateTime @default(now())
+
+  snapshots CompetitorSnapshot[]
+
+  @@unique([platform, externalId])
+}
+
+// Rakip kanalın belirli andaki istatistikleri (zaman serisi)
+model CompetitorSnapshot {
+  id              String   @id @default(cuid())
+  competitorId    String
+  capturedAt      DateTime @default(now())
+  subscribers     Int      @default(0)
+  totalViews      BigInt   @default(0)
+  videoCount      Int      @default(0)
+  recentVideos30d Int      @default(0) // son 30 günde yayınlanan video sayısı
+  recentAvgViews  Int      @default(0) // son 5 videonun ortalama izlenmesi
+
+  competitor Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+
+  @@index([competitorId, capturedAt])
+}

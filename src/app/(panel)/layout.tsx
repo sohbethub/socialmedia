@@ -6,6 +6,7 @@ const nav = [
   { href: "/analytics", label: "Analiz", icon: "📈" },
   { href: "/comments", label: "Yorumlar", icon: "💬" },
   { href: "/planner", label: "Planlayıcı", icon: "📅" },
+  { href: "/competitors", label: "Rakip Takibi", icon: "🆚" },
   { href: "/insights", label: "Öneriler", icon: "💡" },
   { href: "/accounts", label: "Hesaplar", icon: "🔗" },
 ];

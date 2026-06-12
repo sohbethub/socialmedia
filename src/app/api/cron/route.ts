@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { refreshCompetitors } from "@/lib/competitors";
 import { syncAllAccounts } from "@/lib/sync";
 
 // Periyodik görevler. Dış bir zamanlayıcı (sunucu cron'u, Vercel Cron vb.)
@@ -16,6 +17,14 @@ export async function GET(req: NextRequest) {
   }
 
   const syncResults = await syncAllAccounts();
+
+  // Rakip istatistikleri (bağlı YouTube hesabı yoksa sessizce atlanır)
+  let competitorResults: { updated: number; errors: string[] } | null = null;
+  try {
+    competitorResults = await refreshCompetitors();
+  } catch {
+    competitorResults = null;
+  }
 
   const due = await db.scheduledPost.findMany({
     where: { status: "SCHEDULED", scheduledAt: { lte: new Date() } },
@@ -49,6 +58,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     ok: true,
     sync: syncResults,
+    competitors: competitorResults,
     processedScheduledPosts: results,
     ranAt: new Date().toISOString(),
   });
