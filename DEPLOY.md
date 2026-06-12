@@ -24,6 +24,12 @@ Uygulama, **Vercel Hobby** (ücretsiz) üzerinde çalışır ve veritabanı olar
    | `GOOGLE_CLIENT_ID` | Google Cloud Console'daki OAuth istemci kimliği |
    | `GOOGLE_CLIENT_SECRET` | OAuth istemci sırrı |
    | `CRON_SECRET` | Rastgele uzun bir dize (örn. `openssl rand -hex 24` çıktısı) |
+   | `AUTH_USERNAME` | Panel giriş kullanıcı adın |
+   | `AUTH_PASSWORD_HASH` | Şifrenin bcrypt özeti — üretmek için: `npm run auth:hash -- 'şifren'` (Neon SQL Editor gibi, bilgisayar gerekmiyorsa https://bcrypt-generator.com da kullanılabilir; cost=12 seç) |
+   | `AUTH_SECRET` | Oturum imzalama anahtarı — `openssl rand -hex 32` (64 karakterlik rastgele dize) |
+
+   > Giriş bilgileri tanımlanmadan sitede oturum açılamaz; tüm sayfalar
+   > /login'e yönlendirilir.
 
 4. **Deploy** → bittiğinde `https://<proje-adi>.vercel.app` adresin hazır.
 

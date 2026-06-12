@@ -9,12 +9,15 @@
     "start": "next start",
     "lint": "eslint",
     "db:push": "prisma db push",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "auth:hash": "tsx scripts/hash-password.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.1",
     "@prisma/client": "^6.19.3",
+    "bcryptjs": "^3.0.3",
     "date-fns": "^4.4.0",
+    "jose": "^6.2.3",
     "next": "16.2.9",
     "prisma": "^6.19.3",
     "react": "19.2.4",
