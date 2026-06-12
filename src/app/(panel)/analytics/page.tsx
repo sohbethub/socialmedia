@@ -1,21 +1,32 @@
 import { db } from "@/lib/db";
+import { dailyTotalViews, topPostsSeries } from "@/lib/charts";
 import {
   engagementRate,
   formatNumber,
   formatPercent,
   platformLabel,
 } from "@/lib/stats";
+import { TopPostsChart, TotalViewsChart } from "@/components/charts";
 
 export const dynamic = "force-dynamic";
 
 export default async function AnalyticsPage() {
-  const posts = await db.post.findMany({
-    include: {
-      account: true,
-      metrics: { orderBy: { capturedAt: "desc" }, take: 8 },
-    },
-    orderBy: { publishedAt: "desc" },
-  });
+  const [posts, postsWithHistory] = await Promise.all([
+    db.post.findMany({
+      include: {
+        account: true,
+        metrics: { orderBy: { capturedAt: "desc" }, take: 8 },
+      },
+      orderBy: { publishedAt: "desc" },
+    }),
+    db.post.findMany({
+      include: { metrics: { orderBy: { capturedAt: "asc" } } },
+      orderBy: { publishedAt: "desc" },
+    }),
+  ]);
+
+  const totalSeries = dailyTotalViews(postsWithHistory, 30);
+  const top = topPostsSeries(postsWithHistory, 5);
 
   return (
     <div className="space-y-6">
@@ -24,6 +35,20 @@ export default async function AnalyticsPage() {
         Her içeriğin güncel metrikleri ve son 7 günlük izlenme değişimi.
         Etkileşim oranı = (beğeni + yorum + paylaşım + kaydetme) / izlenme.
       </p>
+
+      {totalSeries.length >= 2 && (
+        <section className="rounded-xl border border-zinc-200 bg-white p-5">
+          <h3 className="mb-4 font-semibold">Son 30 Gün — Toplam İzlenme</h3>
+          <TotalViewsChart data={totalSeries} />
+        </section>
+      )}
+
+      {top.data.length >= 2 && top.series.length > 0 && (
+        <section className="rounded-xl border border-zinc-200 bg-white p-5">
+          <h3 className="mb-4 font-semibold">En Çok İzlenen 5 İçeriğin Seyri</h3>
+          <TopPostsChart data={top.data} series={top.series} />
+        </section>
+      )}
 
       <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
         <table className="w-full text-sm">

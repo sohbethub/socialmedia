@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { buildReplyDraft } from "@/lib/replies";
 import { platformLabel, sentimentLabel } from "@/lib/stats";
 import { replyToComment } from "./actions";
 
@@ -57,6 +58,7 @@ export default async function CommentsPage() {
                   <input
                     name="text"
                     required
+                    defaultValue={buildReplyDraft(c.authorName, c.sentiment)}
                     placeholder="Yanıtınızı yazın..."
                     className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
                   />
@@ -67,6 +69,10 @@ export default async function CommentsPage() {
                     Yanıtla
                   </button>
                 </form>
+                <p className="mt-1.5 text-xs text-zinc-400">
+                  ✏️ Yanıt kutusu yorumun türüne göre hazır taslakla dolduruldu —
+                  göndermeden önce düzenleyebilirsin.
+                </p>
               </li>
             ))}
           </ul>

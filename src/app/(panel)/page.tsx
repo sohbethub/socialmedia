@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { dailyTotalViews } from "@/lib/charts";
 import { latestMetricsByPost, platformLabel, formatNumber } from "@/lib/stats";
+import { TotalViewsChart } from "@/components/charts";
 
 export const dynamic = "force-dynamic";
 
 export default async function OverviewPage() {
-  const [posts, pendingComments, upcoming, insights] = await Promise.all([
+  const [posts, pendingComments, upcoming, insights, postsWithHistory] = await Promise.all([
     db.post.findMany({
       include: {
         account: true,
@@ -25,8 +27,12 @@ export default async function OverviewPage() {
       orderBy: { createdAt: "desc" },
       take: 3,
     }),
+    db.post.findMany({
+      include: { metrics: { orderBy: { capturedAt: "asc" } } },
+    }),
   ]);
 
+  const trend = dailyTotalViews(postsWithHistory, 30);
   const totals = latestMetricsByPost(posts);
   const topPosts = [...posts]
     .sort((a, b) => (b.metrics[0]?.views ?? 0) - (a.metrics[0]?.views ?? 0))
@@ -46,6 +52,13 @@ export default async function OverviewPage() {
           highlight={pendingComments > 0}
         />
       </div>
+
+      {trend.length >= 2 && (
+        <section className="rounded-xl border border-zinc-200 bg-white p-5">
+          <h3 className="mb-4 font-semibold">Son 30 Gün — İzlenme Eğilimi</h3>
+          <TotalViewsChart data={trend} />
+        </section>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="rounded-xl border border-zinc-200 bg-white p-5">

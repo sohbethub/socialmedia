@@ -3,6 +3,7 @@
 import type { Account } from "@prisma/client";
 import { db } from "./db";
 import { getValidAccessToken } from "./google";
+import { classifySentiment } from "./replies";
 import { YouTubeClient } from "./platforms/youtube";
 import type { PlatformClient } from "./platforms/types";
 
@@ -74,6 +75,7 @@ export async function syncAccount(account: Account): Promise<SyncResult> {
             externalId: c.externalId,
             authorName: c.authorName,
             text: c.text,
+            sentiment: classifySentiment(c.text),
             publishedAt: c.publishedAt,
           },
         });
